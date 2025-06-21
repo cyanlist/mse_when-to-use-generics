@@ -1,42 +1,77 @@
 # When to use Generics in Go
-_Kurze Zusammenfassung, wann und warum man Generics in Go einsetzen sollte._
 
-**Kurz & Knapp:** Generics (Typ-Parameter) ermöglichen typsichere Wiederverwendung von Funktionen, Typen und Datenstrukturen ohne Code-Duplikation oder `interface{}`-Nutzung.
+> "The Go 1.18 release adds support for generics. Generics are the biggest change we’ve made to Go since the first open source release." (Quelle: The Go Blog, „Type Parameters in Go 1.18")
+
+Generics ermöglichen es, Funktionen und Datenstrukturen zu definieren, die unabhängig von konkreten Typen arbeiten. Dadurch kann wiederverwendbaren, typsicheren und klaren Code geschrieben werden, ohne auf Reflection oder Interface{} zurückzugreifen.
+
+**Vorteile:**
+
+- Höhere Typsicherheit durch Compilezeit-Typprüfung
+- Reduziert Boilerplate-Code
+- Verbessert Wartbarkeit und Lesbarkeit 
+- Potenzielle Performance-Optimierung durch Compilezeit-Monomorphisierung
+
+**Nachteile:**
+
+- Begrenzte Ausdrucksstärke der Typconstraints (komplexe Beziehungen nicht ausdrückbar)
+- Keine generischen Methoden (keine eigenständige Typparameter definierbar)
+- Eingeschränkte Unterstützung durch die Standardbibliothek
 
 ## Allgemeine Empfehlungen
 
 _Die folgenden Punkte sind keine in Stein gemeißelten Regeln, sondern Vorschläge, die im jeweiligen Kontext mit gesundem Menschenverstand bewertet werden sollten._
 
-> **Faustregel:**  
-> Vermeide Generics, bis du denselben Code mehrmals schreiben musst.  
+>  **Faustregel:**
+> Vermeide Generics, bis man denselben Code mehrmals schreiben muss.
 
 - **Klarheit & Wartbarkeit:** Nutze Generics nur, wenn sie echten Mehrwert bieten.
-- **Einfachheit bewahren:** Bei schmalen oder trivialen Use-Cases lieber auf konkrete Typen setzen.  
+- **Lesbarkeit priorisieren:** Der generische Code sollte intuitiv und verständlich bleiben.
+- **Einfachheit bewahren:** Bei schmalen oder trivialen Use-Cases lieber auf konkrete Typen setzen.
+
+## Generics vs. Interface{}
+
+Vor Go 1.18 wurde oft interface{} verwendet, um generelle Funktionen zu implementieren. 
+Mit Generics steht jetzt eine bessere Alternative bereit, um typisierte, effiziente und wartbare Lösungen zu schaffen.
+
+|  | Generics | Interface{} |
+| -- | -- | -- |
+| Typsicherheit | Vollständig | Nicht vorhanden |
+| Performance | Höher (keine Laufzeitüberprüfung) | Niedriger (Reflection)
+| Lesbarkeit | Hoch | Niedrig
+| Wartbarkeit | Gut | Mittel bis niedrig
+
+-> Generics sollten grundsätzlich bevorzugt und Interface{} vermieden werden.
+
+## Generics vs. Interfaces
+
+Generics und Interfaces werden beide verwendet, um Abstraktion und Wiederverwendbarkeit in Go zu erzielen. 
+Allerdings unterscheiden sie sich in der Art und Weise, wie sie Typflexibilität und Polymorphismus realisieren:
+|  | Generics | Interfaces |
+|--|--| -- |
+| **Typflexibilität**| Zur Compilezeit festgelegt| Dynamisch zur Laufzeit |
+| **Performance**| Meist besser | Etwas langsamer
+| **Polymorphismus**| Statisch (kompilierungsbasiert) | Dynamisch (Laufzeit)
+| **Code-Wiederverwendung** | Hoch (allgemeine Logik) | Hoch (gemeinsame Methodik)
+  
+ -> Interfaces für dynamisches Verhalten zur Laufzeit, Generics für statisch sichere Typverallgemeinerungen.
 
 ## Implementierungs-Use-Cases: Wann Generics einsetzen vs. vermeiden
-
+  
 ### ✅ Sinnvolle Einsatzgebiete
-- **Container-Funktionen verallgemeinern:** Operationen für beliebige Datenansammlungen (Maps, Slices, ...)
-- **Wiederverwendbare, typunspezifische Datenstrukturen:** Generische Bäume, Listen, Stacks, ...
-- **Einheitliche Methoden-Implementierung:** Gemeinsame Logik für alle Typen 
-- **Funktionale Helfer:** Transformationen/Auswertungen generischer Datenstrukturen
-
+-  **Container-Funktionen verallgemeinern:** Operationen für beliebige Datenansammlungen (Maps, Slices, ...)
+-  **Wiederverwendbare, typunspezifische Datenstrukturen:** Generische Bäume, Listen, Stacks, ...
+-  **Funktionale Helfer:** Transformationen/Auswertungen generischer Datenstrukturen
+-  **Einheitliche Methoden-Implementierung:** Gemeinsame Logik für alle Typen
+  
 ### 🚫 Wann du besser darauf verzichten solltest
-- **Einzelner Methodenaufruf:** Bei einmalige, typgebundenen Operationen
-- **Heterogene Implementierungen:** Unterschiedliche Logik pro Typvariante
-- **Stark dynamische Typen:** Fällen, in denen Reflection ohnehin nötig ist
+-  **Einzelne Methodenaufrufe:** Bei einmalige, typgebundenen Operationen
+-  **Stark dynamische Typen:** Fällen, in denen Reflection ohnehin nötig ist
+-  **Heterogene Implementierungen:** Unterschiedliche Logik pro Typvariante
 
-## TODO
-
- - [ ] "Einleitung" verbessern
- - [ ] "Klarheit & Wartbarkeit" ergänzen -> Overhead minimieren. Falls benötigt, kann man Generics nachträglich leicht ergänzen
- - [ ] Generics für Tests?
-
-## Quellen
+## Weiterführende Ressourcen
+- [An Introduction To Generics](https://go.dev/blog/intro-generics)
 - [When To Use Generics - The Go Programming Language](https://go.dev/blog/when-generics)
-- [5 Practical Go Generics Examples to Level Up Your Code - DEV Community](https://dev.to/shrsv/5-practical-go-generics-examples-to-level-up-your-code-3m96#:~:text=Go%20generics,%20introduced%20in%20Go%201.18,%20let%20you,cases%20that%20show%20their%20power%20in%20real-world%20scenarios.)
-- [Generics in Go: Use Cases, Tips, and Pitfalls 🧰🐹 | by Let's code | Medium](https://medium.com/@letsCodeDevelopers/generics-in-go-use-cases-tips-and-pitfalls-e25ec564c9a5)
-- [GitHub - akutz/go-generics-the-hard-way: A hands-on approach to getting started with Go generics.](https://github.com/akutz/go-generics-the-hard-way)
-- [Type Parameters Proposal](https://go.googlesource.com/proposal/+/refs/heads/master/design/43651-type-parameters.md)
-
+[Generics in Go: Use Cases, Tips, and Pitfalls 🧰🐹 | by Let's code | Medium](https://medium.com/@letsCodeDevelopers/generics-in-go-use-cases-tips-and-pitfalls-e25ec564c9a5)
+- [Type Parameters Proposal](https://go.googlesource.com/proposal/+/refs/heads/master/design/43651-type-parameters.md)(https://medium.com/@letsCodeDevelopers/generics-in-go-use-cases-tips-and-pitfalls-e25ec564c9a5)
+- [Why Go’s Generics Might Be Worse Than No Generics at All | by Leapcell | Apr, 2025 | Medium](https://leapcell.medium.com/why-gos-generics-might-be-worse-than-no-generics-at-all-7b2373ce99f0)
 - <!-- https://stackedit.io/app# -->
