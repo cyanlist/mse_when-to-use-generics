@@ -16,7 +16,12 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
 
     Container-Utilities sind kleine Helfer, die häufig wiederkehrende Operationen auf Slices, Maps oder Channels abdecken – z.B. Filtern, Extrahieren, Umwandeln, ...
 
-    **Beispiel:**
+    **Beispiel:** Schlüssel aus einer unspezifischen Map extrahieren
+    --- 
+
+    In Go sind Maps assoziative Datensammlungen (map[key]value). Der Key muss immer comparable sein (damit Go Hashing & Vergleiche machen kann). Oft will man alle Keys unabhängig vom Wert-Typ haben. <br> <br>
+    
+    **Eingabebeispiel:**
     ```go
     ages := map[string]int{
         "Alice": 31,
@@ -32,6 +37,8 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
 
     **Ohne Generics:**
     ```go
+    // Mithilfe einfacher Funktionen muss für jede Map 'map[typ1]typ2' eine eigene Funktion mit derselben Struktur ...
+ 
     func MapKeysStringInt(m map[string]int) []string {
         keys := make([]string, 0, len(m))
         for k := range m {
@@ -54,6 +61,9 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
 
     **Mit Generics:**
     ```go
+    // Eine Funktion für alle Key/Value-Kombinationen!
+    // K: Map-Key
+    // V: Map-Value
     func MapKeys[K comparable, V any](m map[K]V) []K {
         keys := make([]K, 0, len(m))
         for k := range m {
@@ -62,8 +72,11 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
         return keys
     }  
 
+    // Klar lesbare, wiederverwendbare Aufrufe:
     ageKeys := MapKeys[string, int](ages)       // -> []string{"Alice", "Bob"}
     todoKeys := MapKeys[int, string](todo)      // -> []int{1, 2, 3}
+    
+    // -> Vorteil: nur noch eine Codebasis!
     ```
     </details><br>
 - 
@@ -72,11 +85,16 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
     
     Eigene Datenstrukturen wie Stacks, Queues oder Bäume kommen in vielen Programmen vor. Ohne Generics müsste man sie für jeden Elementtyp neu schreiben.
 
-    **Beispiel:** <br>
+    **Beispiel:** Stack-Datenstruktur für verschiedene Typen
+    --- 
+    Ein Stack (LIFO) ist eine Datenstruktur, die zwei grundlegende Methoden hat:
+    - Push: Element oben drauflegen
+    - Pop: oberstes Element entfernen und zurückgeben <br> <br>
+
 
     **Ohne Generics:**
     ```go
-    // Spezifisch für int
+    // Stack für int-Elemente
     type IntStack struct { items []int }
 
     func (s *IntStack) Push(v int) { 
@@ -90,7 +108,7 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
         return v
     }
 
-    // Spezifisch für string
+    // Stack für string-Elemente
     type StringStack struct { items []string }
 
     func (s *StringStack) Push(v string) { 
@@ -104,6 +122,8 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
         return v
     }
 
+    // Zwei unterschiedliche Stack-Typen notwendig:
+
     var intStack IntStack
     intStack.Push(42)
     intStack.Pop()
@@ -115,6 +135,8 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
 
     **Mit Generics:**
     ```go
+    // Stack kann hier Werte jeden Typs halten:
+    // Allerdings: Innerhalb eines Stacks nur ein Typ
     type Stack[T any] struct {
 	    items []T
     }
@@ -141,11 +163,19 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
     </details><br>
 - 
     <details>
-    <summary><strong>Identische Methoden:</strong><br> Wrapper, die exakt dieselbe Logik für verschiedene Typen bereitstellen.</summary><br>
+    <summary><strong>Identische Methoden:</strong><br> Wrapper, die exakt dieselbe Logik für verschiedene Typen bereitstellen.</summary> 
 
-    **Beispiel:** <br>
+    Wenn exakt die gleiche Logik für unterschiedliche Typen gebraucht wird (z.B. Suchen in Listen), kann eine generische Funktion helfen, redundanten Code zu vermeiden.
+
+
+    **Beispiel:** Index eines gesuchten Elements im Slice finden
+    --- 
+
+    Wenn man in Go wissen will, an welcher Stelle ein Wert in einem Slice steht, braucht man oft eine Schleife, die mit '==Ä vergleicht. Der Typ im Slice muss daher comparable sein, sonst gibt’s einen Compiler-Fehler.<br> <br>
+
     **Ohne Generics:**
     ```go
+    // Für int-Elemente
     func IndexOfInt(slice []int, target int) (int, error) {
         for i, v := range slice {
             if v == target {
@@ -155,6 +185,7 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
         return -1, fmt.Errorf("int %v nicht gefunden", target)
     }
 
+    // Für string-Elemente:
     func IndexOfString(slice []string, target string) (int, error) {
         for i, v := range slice {
             if v == target {
@@ -167,7 +198,8 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
 
     **Mit Generics:**
     ```go
-    // IndexOf gibt den Index von target in slice zurück.
+    // T muss vergleichbar sein, damit wir == verwenden dürfen.
+    // Einfache, universelle Funktion.
     func indexOf[T comparable](s []T, e T) (int, error) {
         for i, v := range s {
             if v == e {
@@ -177,11 +209,9 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
         return -1, errors.New("element not found")
     }
 
-    idx1, err1 := IndexOf([]int{1, 2, 3}, 2)
-    // idx1 == 1, err1 == nil
+    idx1, err1 := IndexOf([]int{1, 2, 3}, 2)                // idx1 == 1, err1 == nil
 
-    idx2, err2 := IndexOf([]string{"foo", "bar"}, "baz")
-    // idx2 == -1, err2 == Error("baz nicht gefunden")
+    idx2, err2 := IndexOf([]string{"foo", "bar"}, "baz")    // idx2 == -1, err2 == Error("baz nicht gefunden")
     ```
     </details><br>
 
@@ -190,8 +220,15 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
     <details>
     <summary><strong>Wenn Overgeneralization droht:</strong><br> Nicht jede Funktion muss generisch sein.</summary><br>
 
-    Oft ist eine Funktion nur für einen bestimmte Datentypen gedacht. Dann bringt eine generische Signatur keinen echten Mehrwert, macht den Code sogar komplizierter und fehleranfälliger. 
+    Oft ist eine Funktion nur für einen bestimmte Datentypen gedacht. Dann bringt eine generische Signatur keinen echten Mehrwert, macht den Code sogar komplizierter und fehleranfälliger.
+
+    **Beispiel:** Print-Methode für beliebige Typen, die fmt.Stringer implementieren
+    --- 
+
+    Manche Funktionen sind einfach nur für bestimmte Typen sinnvoll, z.B. Strings in Großbuchstaben umwandeln. <br> <br>
+
     
+    **Mit Generics:**
     ```go
     // Eine generische Variante bringt hier nur Komplexität:
 
@@ -205,7 +242,9 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
     }
     ```
 
+    **Ohne Generics:**
     ```go
+    // Das ist viel klarer: Funktioniert nur für Strings, was auch der Sinn ist.
     func ToUpperCase(s string) string {
         return strings.ToUpper(s)
     }
@@ -217,8 +256,15 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
     <summary><strong>Wenn ein Interface ausreicht:</strong><br> Verwende eine vorhandene Schnittstelle, sobald alle benötigten Methoden schon definiert sind.</summary><br>
 
     Go bietet [Interface-Types](https://go.dev/tour/methods/9) an. Sie erlauben ebenfalls generischen Code zu schreiben. Falls alles, was mit einem Wert eines Typs getan werden muss, das Aufrufen einer oder mehrerer Methoden auf diesem Wert ist, genügt ein Interface-Typ. Typparameter würden hier nur unnötig Komplexität hinzufügen. 
+
+    **Beispiel:** Print-Methode für beliebige Typen, die fmt.Stringer implementieren
+    --- 
+
+    Interfaces in Go beschreiben Verhalten, nicht Typen. Das Interface fmt.Stringer garantiert, dass String() implementiert ist. Damit kann jede Funktion, die einen "druckbaren" Wert haben will, einfach fmt.Stringer nehmen – egal, was für ein Typ dahintersteckt. <br> <br>
     
+    **Mit Generics:**
     ```go
+    // Generics hier sind unnötig, weil das Interface alles abdeckt.
     func Print[T fmt.Stringer](v T) {
         // v ruft Println() auf
         // -> T muss zwangsläufig fmt.Stringer sein
@@ -226,6 +272,7 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
     }
     ```
 
+    **Ohne Generics:**
     ```go
     // Signatur ist einfacher zu lesen: 
     // fmt.Stringer übernimmt die Rolle eines "Typs"
@@ -240,11 +287,19 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
     <details>
     <summary><strong>Wenn die Logik sich pro Typ unterscheidet:</strong><br> Setze auf Interfaces oder konkrete Typen, wenn verschiedene Typen unterschiedliche Implementierungen benötigen. </summary><br>
 
-    Wenn jede Typ-Variante ihre ganz eigene Funktionslogik erfordert, führt ein generischer Ansatz unweigerlich zu Type Switches, Type Casts oder Reflection und bricht die Typsicherheit.
+    Wenn jede Typ-Variante ihre ganz eigene Funktionslogik erfordert, führt ein generischer Ansatz unweigerlich zu Type Switches, Type Casts oder Reflection und bricht die Typsicherheit. 
 
+    **Beispiel:** Flächenberechnung für verschiedene Geometrie-Typen
+    ---
+
+    Verschiedene Geometrie-Typen (wie Circle, Rectangle) haben zwar alle eine Fläche, aber die Berechnung ist unterschiedlich! <br> <br>
+
+    **Mit Generics:**
     ```go
     type Circle struct{R float64}
     type Rectangle struct{W, H float64}
+
+    // Generics verleiten zu unsauberem "type switch" und Panic.
 
     func CalculateArea[T any](s T) float64 {
         switch v := any(s).(type) {
@@ -258,9 +313,12 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
     }
     ```
     
+    **Ohne Generics:**
     ```go
     type Circle struct{R float64}
     type Rectangle struct{W, H float64}
+
+    // Besser: Jeder Typ weiß selbst, wie Fläche berechnet wird!
 
     // Einzigartige Implementierung für Circle
     func (c Circle) CalculateArea() float64 { 
@@ -276,18 +334,27 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
 - 
     <details>
     <summary><strong>Wenn Reflection die passendere Wahl ist:</strong><br> Greife auf Reflection zurück, wenn du hochdynamisch mit beliebigen Typen arbeiten musst und generische Constraints nicht ausreichen. </summary><br>
-
-    Go bietet [Reflection](https://go.dev/blog/laws-of-reflection) an. Selbst mit Generics bleibt Reflection unvermeidbar, wenn das Programm seine Typen und Werte während der Laufzeit manipuliert.
     
+
+    Go bietet [Reflection](https://go.dev/blog/laws-of-reflection) an. Selbst mit Generics bleibt Reflection unvermeidbar, wenn das Programm seine Typen und Werte während der Laufzeit manipuliert. 
+
+    **Beispiel:** Anzahl der Felder in einem Struct ermitteln
+    ---
+    
+    Reflection ist ein Feature in Go, mit dem man zur Laufzeit Infos über Typen und Werte herausfinden kann (reflect.TypeOf()). <br> <br>
+    
+    **Mit Generics:**
     ```go
     func GetNumberOfFieldsInStruct[T any](v T) int {
         // Generics ändert hier nichts: reflect.TypeOf bleibt nötig
         return reflect.TypeOf(v).NumField()
     }
     ```
+
+    **Ohne Generics:**
     ```go
+    // interface{} ist für Reflection der Standard und reicht vollkommen aus
     func ChangeNumberOfFieldsInStruct(v interface{}) int {
-    // interface{} ist klarer Input für Reflection
     return reflect.TypeOf(v).NumField()
     ```
     </details><br>
