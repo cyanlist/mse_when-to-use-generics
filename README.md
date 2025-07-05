@@ -9,6 +9,8 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
 > **❗Hinweis:** <br>
 > Die nachfolgenden Aufzählungen sind Empfehlungen, keine starren Regeln. Wende sie je nach Projekt und Anforderung flexibel an.
 
+<br>
+
 ## ✅ Typische Use-Cases
 - 
     <details>
