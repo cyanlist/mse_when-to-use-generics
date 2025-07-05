@@ -102,7 +102,6 @@ Seit 1.18 erlauben [Generics](https://go.dev/blog/intro-generics), Funktionen un
     todoIDs := GetKeysFromMap[int, string](todoMap)             // -> []int{1, 2, 3}
 
     // Vorteil: Kein Code-Duplikat mehr. Typsicherheit bleibt erhalten.
-
     ```
     </details><br>
 - 
